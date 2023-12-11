@@ -43,6 +43,17 @@ void Application::Initialize()
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+	std::string vertexShaderSource = LoadShaderSource("vertexShader.glsl");
+	std::string fragmentShaderSource = LoadShaderSource("fragmentShader.glsl");
+
+	GLuint vertexShaderID = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
+	GLuint fragmentShaderID = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+
+	m_shaderProgramID = LinkShaders(vertexShaderID, fragmentShaderID);
+
+	glDeleteShader(vertexShaderID);
+	glDeleteShader(fragmentShaderID);
+
 	m_isRunning = true;
 }
 
@@ -51,6 +62,10 @@ void Application::Run()
 	while (m_isRunning)
 	{
 		ProcessInput();
+
+		glUseProgram(m_shaderProgramID);
+
+		glUseProgram(0);
 	}
 }
 
@@ -122,6 +137,7 @@ GLuint Application::LinkShaders(GLuint vertexShaderID, GLuint fragmentShaderID)
 
 void Application::Destroy()
 {
+	glDeleteProgram(m_shaderProgramID);
 	SDL_GL_DeleteContext(m_glContext);
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();

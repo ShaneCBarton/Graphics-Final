@@ -20,6 +20,7 @@ public:
 private:
 	SDL_Window* m_window;
 	SDL_GLContext m_glContext;
+	GLuint m_shaderProgramID;
 	bool m_isRunning;
 };
 
