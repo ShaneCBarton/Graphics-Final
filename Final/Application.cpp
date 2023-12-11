@@ -1,4 +1,9 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <glew.h>
+#include <gl/GL.h>
+
 #include "Application.h"
 
 Application::Application()
@@ -25,6 +30,12 @@ void Application::Initialize()
 	if (!m_glContext)
 	{
 		std::cout << "Error creating OpenGL context..." << std::endl;
+	}
+
+	GLenum glewError = glewInit();
+	if (glewError != GLEW_OK)
+	{
+		std::cout << "Error initializing GLEW..." << std::endl;
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -61,6 +72,52 @@ void Application::ProcessInput()
 			break;
 		}
 	}
+}
+
+std::string Application::LoadShaderSource(const char* filePath)
+{
+	std::ifstream file(filePath);
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	return buffer.str();
+}
+
+GLuint Application::CompileShader(GLenum shaderType, const std::string& source)
+{
+	GLuint shaderID = glCreateShader(shaderType);
+	const char* sourceCStr = source.c_str();
+	glShaderSource(shaderID, 1, &sourceCStr, NULL);
+	glCompileShader(shaderID);
+
+	GLint success;
+	glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		GLchar infoLog[512];
+		glGetShaderInfoLog(shaderID, sizeof(infoLog), NULL, infoLog);
+		std::cout << "Shader compilation failed: \n" << infoLog << std::endl;
+	}
+
+	return shaderID;
+}
+
+GLuint Application::LinkShaders(GLuint vertexShaderID, GLuint fragmentShaderID)
+{
+	GLuint programID = glCreateProgram();
+	glAttachShader(programID, vertexShaderID);
+	glAttachShader(programID, fragmentShaderID);
+	glLinkProgram(programID);
+
+	GLint success;
+	glGetProgramiv(programID, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		GLchar infoLog[512];
+		glGetShaderInfoLog(programID, sizeof(infoLog), NULL, infoLog);
+		std::cout << "Shader program linking failed: \n" << infoLog << std::endl;
+	}
+
+	return programID;
 }
 
 void Application::Destroy()
