@@ -16,6 +16,8 @@ public:
 	std::string LoadShaderSource(const char* filePath);
 	GLuint CompileShader(GLenum shaderType, const std::string& source);
 	GLuint LinkShaders(GLuint vertexShaderID, GLuint fragmentShaderID);
+	void CheckGLErrors(const char* location);
+	float GetCurrentTime();
 
 private:
 	SDL_Window* m_window;
