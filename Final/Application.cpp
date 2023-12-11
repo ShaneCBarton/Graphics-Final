@@ -26,6 +26,11 @@ void Application::Initialize()
 	m_window = SDL_CreateWindow("OpenGL Final", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 		800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
 	m_glContext = SDL_GL_CreateContext(m_window);
 	if (!m_glContext)
 	{
@@ -38,13 +43,12 @@ void Application::Initialize()
 		std::cout << "Error initializing GLEW..." << std::endl;
 	}
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-	std::string vertexShaderSource = LoadShaderSource("vertexShader.glsl");
-	std::string fragmentShaderSource = LoadShaderSource("fragmentShader.glsl");
+	std::string vertexShaderSource = LoadShaderSource("..Shaders\default.vert");
+	std::string fragmentShaderSource = LoadShaderSource("..Shaders\default.frag");
+
+	std::cout << "Vertex Shader Source:\n" << vertexShaderSource << std::endl;
+	std::cout << "Fragment Shader Source:\n" << fragmentShaderSource << std::endl;
 
 	GLuint vertexShaderID = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
 	GLuint fragmentShaderID = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
@@ -128,7 +132,7 @@ GLuint Application::LinkShaders(GLuint vertexShaderID, GLuint fragmentShaderID)
 	if (!success)
 	{
 		GLchar infoLog[512];
-		glGetShaderInfoLog(programID, sizeof(infoLog), NULL, infoLog);
+		glGetProgramInfoLog(programID, sizeof(infoLog), NULL, infoLog);
 		std::cout << "Shader program linking failed: \n" << infoLog << std::endl;
 	}
 
