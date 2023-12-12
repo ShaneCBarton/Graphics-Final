@@ -28,6 +28,8 @@ void Application::Initialize()
 	m_window = SDL_CreateWindow("OpenGL Final", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 		800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
+	glViewport(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600);
+
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -45,31 +47,20 @@ void Application::Initialize()
 		std::cout << "Error initializing GLEW..." << std::endl;
 	}
 
-	std::string vertexShaderSource = LoadShaderSource("shaders\\default.vert");
-	std::string fragmentShaderSource = LoadShaderSource("shaders\\default.frag");
+	std::string vertexShaderSource = LoadShaderSource("shaders/default.vert");
+	std::string fragmentShaderSource = LoadShaderSource("shaders/default.frag");
 
 	std::cout << "Vertex Shader Source:\n" << vertexShaderSource << std::endl;
 	std::cout << "Fragment Shader Source:\n" << fragmentShaderSource << std::endl;
 
-	GLuint shaderProgramID = glCreateProgram();
+	m_shaderProgramID = glCreateProgram();
 
 	GLuint vertexShaderID = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
 	GLuint fragmentShaderID = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
 	m_shaderProgramID = LinkShaders(vertexShaderID, fragmentShaderID);
 
-	glUseProgram(shaderProgramID);
-	GLuint iChannel10Location = glGetUniformLocation(shaderProgramID, "iChannel10");
-	GLuint iResolutionLocation = glGetUniformLocation(shaderProgramID, "iResolution");
-	GLuint iTimeLocation = glGetUniformLocation(shaderProgramID, "iTime");
-
-	int textureUnit = 0;
-	float resolution[2] = { 800, 600 };
-	float currentTime = GetCurrentTime();
-
-	glUniform1i(iChannel10Location, textureUnit);
-	glUniform2fv(iResolutionLocation, 1, resolution);
-	glUniform1f(iTimeLocation, currentTime);
+	glUseProgram(m_shaderProgramID);
 
 	glDeleteShader(vertexShaderID);
 	glDeleteShader(fragmentShaderID);
@@ -81,9 +72,9 @@ void Application::Run()
 {
 	while (m_isRunning)
 	{
-		ProcessInput();
-		glUseProgram(m_shaderProgramID);
-
+		ProcessInput(); 
+		RenderFrame();
+		SDL_GL_SwapWindow(m_window);
 	}
 }
 
@@ -130,8 +121,6 @@ GLuint Application::CompileShader(GLenum shaderType, const std::string& source)
 	glShaderSource(shaderID, 1, &sourceCStr, NULL);
 	glCompileShader(shaderID);
 
-	CheckGLErrors("After glCompileShader");
-
 	GLint success;
 	glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
 	if (!success)
@@ -150,8 +139,6 @@ GLuint Application::LinkShaders(GLuint vertexShaderID, GLuint fragmentShaderID)
 	glAttachShader(programID, vertexShaderID);
 	glAttachShader(programID, fragmentShaderID);
 	glLinkProgram(programID);
-
-	CheckGLErrors("After glLinkProgram");
 
 	GLint success;
 	glGetProgramiv(programID, GL_LINK_STATUS, &success);
@@ -173,17 +160,17 @@ void Application::Destroy()
 	SDL_Quit();
 }
 
-void Application::CheckGLErrors(const char* location)
-{
-	GLenum error = glGetError();
-	if (error != GL_NO_ERROR)
-	{
-		std::cerr << "OpenGL error at " << location << ": " << error << std::endl;
-	}
-}
-
 float Application::GetCurrentTime()
 {
 	using namespace std::chrono;
 	return duration_cast<duration<float>>(high_resolution_clock::now().time_since_epoch()).count();
 }
+
+void Application::RenderFrame()
+{
+	glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glUseProgram(m_shaderProgramID);
+	glUniform1f(glGetUniformLocation(m_shaderProgramID, "time"), GetCurrentTime());
+}
+

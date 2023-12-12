@@ -13,6 +13,7 @@ public:
 	void Destroy();
 	void Run();
 	void ProcessInput();
+	void RenderFrame();
 	std::string LoadShaderSource(const char* filePath);
 	GLuint CompileShader(GLenum shaderType, const std::string& source);
 	GLuint LinkShaders(GLuint vertexShaderID, GLuint fragmentShaderID);
