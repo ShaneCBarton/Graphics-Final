@@ -1,9 +1,8 @@
-#ifdef GL_ES
-precision mediump float;
-#endif
+#version 330 core
 
-uniform float time;
+layout (location = 0) in vec3 position;
 
-void main() {
-    gl_Position = vec4(gl_Vertex.xy, 0.0, 1.0);
+void main()
+{
+    gl_Position = vec4(position, 1.0);
 }
